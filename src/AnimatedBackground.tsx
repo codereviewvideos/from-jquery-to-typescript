@@ -12,6 +12,8 @@ interface IAnimatedBackgroundState {
 
 class AnimatedBackground extends React.Component<any, IAnimatedBackgroundState> {
 
+  private interval: any;
+
   public constructor(props: any) {
     super(props);
     
@@ -30,13 +32,23 @@ class AnimatedBackground extends React.Component<any, IAnimatedBackgroundState> 
     };
   }
 
-  public render() {
-    this.determineNextColourCombo();
+  public componentDidMount(): void {
+    this.interval = setInterval(() => this.updateGradient(), 10);
+  }
 
-    setInterval(this.updateGradient.bind(this), 1000);
+  public componentWillUnmount(): void {
+    clearInterval(this.interval);
+  }
+
+  public render() {
+    const [colour1, colour2] = this.determineNextColourCombo();
+
+    const css = {
+      background: "-webkit-gradient(linear, left top, right top, from("+colour1+"), to("+colour2+"))"
+    };
 
     return (
-      <div className="AnimatedBackground ">
+      <div className="AnimatedBackground" style={css}>
         hello
       </div>
     );
@@ -68,10 +80,6 @@ class AnimatedBackground extends React.Component<any, IAnimatedBackgroundState> 
   }
 
   private updateGradient() {
-    // $('#gradient').css({
-    //     background: "-webkit-gradient(linear, left top, right top, from("+colour1+"), to("+colour2+"))"}).css({
-    //     background: "-moz-linear-gradient(left, "+colour1+" 0%, "+colour2+" 100%)"});
-
     const {colours, colourIndices, gradientSpeed, step} = this.state;
 
     this.setState({
@@ -79,10 +87,6 @@ class AnimatedBackground extends React.Component<any, IAnimatedBackgroundState> 
     });
 
     if (step >= 1) {
-      this.setState({
-        step: step % 1
-      });
-
       colourIndices[0] = colourIndices[1];
       colourIndices[2] = colourIndices[3];
 
@@ -91,6 +95,9 @@ class AnimatedBackground extends React.Component<any, IAnimatedBackgroundState> 
       colourIndices[1] = (colourIndices[1] + Math.floor(1 + Math.random() * (colours.length - 1))) % colours.length;
       colourIndices[3] = (colourIndices[3] + Math.floor(1 + Math.random() * (colours.length - 1))) % colours.length;
 
+      this.setState({
+        step: step % 1
+      });
     }
   }
 }
